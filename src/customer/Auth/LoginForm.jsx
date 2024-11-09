@@ -1,11 +1,16 @@
-import React from 'react'
+import React,{useEffect} from 'react'
 import {Grid, TextField,Button} from '@mui/material'
 import {useNavigate} from 'react-router-dom'
+import {useDispatch,useSelector} from 'react-redux'
+import {login,getUser} from '../../State/Auth/Action.js'
 
 const LoginForm=()=>{
 
+    const dispatch=useDispatch()
     const navigate=useNavigate();
-
+    const jwt=localStorage.getItem("jwt")
+    const {auth}=useSelector(store=>store)
+ 
     const handleSubmit=(event)=>{
         event.preventDefault();
 
@@ -17,6 +22,9 @@ const LoginForm=()=>{
             password:data.get("password")
         }
         console.log("userData", userData)
+
+        dispatch(login(userData))
+
     }
     return(
         <div>

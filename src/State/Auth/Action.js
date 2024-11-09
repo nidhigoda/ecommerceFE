@@ -43,6 +43,7 @@ export const login=(userData)=>async(dispatch)=>{
 
         if(user.jwt){
             localStorage.setItem("jwt", user.jwt)
+            //token=localStorage.getItem("jwt")
         }
         token=localStorage.getItem("jwt");
         dispatch(loginSuccess(user.jwt))
@@ -79,6 +80,7 @@ export const getUser=()=>async(dispatch)=>{
 
 export const logout=()=>(dispatch)=>{
     dispatch({type:LOGOUT,payload:null})
+    localStorage.clear();
 }
 
 

@@ -1,15 +1,20 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
 import { StarIcon } from '@heroicons/react/20/solid'
 import { Radio, RadioGroup } from '@headlessui/react'
 import {Rating, Button,Grid,LinearProgress,Box} from '@mui/material'
 import ProductReviewCard from './ProductReviewCard'
 import { mens_kurta } from "../../../Data/mens_kurta";
 import HomeSectionCard from "../HomeSectionCard/HomeSectionCard";
-import {useNavigate} from 'react-router-dom'
-const product = {
+import {useNavigate, useParams} from 'react-router-dom'
+import {useDispatch,useSelector} from 'react-redux'
+import {findProductsById} from '../../../State/Product/Action.js'
+import {addItemToCart} from '../../../State/Cart/Action.js'
+import {findRatings} from '../../../State/Ratings/Action.js'
+
+const product1 = {
   name: 'Basic Tee 6-Pack',
   price: '$192',
   href: '#',
@@ -65,12 +70,28 @@ function classNames(...classes) {
 }
 
 export default function ProductDetails() {
-  const [selectedColor, setSelectedColor] = useState(product.colors[0])
-  const [selectedSize, setSelectedSize] = useState(product.sizes[2])
+  const {product,rating}=useSelector(store=>store);
+  //console.log("product", product.product)
+  const [selectedColor, setSelectedColor] = useState(product1.colors[0])
+  const [selectedSize, setSelectedSize] = useState('L')
   const navigate=useNavigate();
-
-
+  const params=useParams();
+  const dispatch=useDispatch()
+  
+  
+  console.log("params",params)
+  useEffect(()=>{
+    console.log("here")
+   const  reqData={ "productId":params.productId}
+    dispatch(findProductsById(reqData))
+    dispatch(findRatings(reqData))
+  },[params.productId])
+  console.log("Rating", rating)
   const handleAddtoCart=()=>{
+    console.log("selectedSize",selectedSize.name ," ", typeof(selectedSize))
+    const dataCart ={ "productId":params.productId, "size":selectedSize.name}
+    dispatch(addItemToCart(dataCart))
+    //console.log()
     navigate("/cart")
   }
   return (
@@ -78,7 +99,7 @@ export default function ProductDetails() {
       <div className="pt-6">
         <nav aria-label="Breadcrumb">
           <ol role="list" className="mx-auto flex max-w-2xl items-center space-x-2 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-            {product.breadcrumbs.map((breadcrumb) => (
+            {product1.breadcrumbs.map((breadcrumb) => (
               <li key={breadcrumb.id}>
                 <div className="flex items-center">
                   <a href={breadcrumb.href} className="mr-2 text-sm font-medium text-gray-900">
@@ -111,13 +132,13 @@ export default function ProductDetails() {
           <div className="flex flex-col items-center">
             <div className="overflow-hidden rounded-lg max-w-[30rem] max-h-[35rem]">
               <img
-                alt={product.images[0].alt}
-                src={product.images[0].src}
+                alt={product1.images[0].alt}
+                src={product.product?.imageUrl}
                 className="h-full w-full object-cover object-center"
               />
             </div>
             <div className="flex flex-wrap space-x-5 justify-center">
-            { product.images.map((item)=><div className="aspect-h-2 aspect-w-3 overflow-hidden rounded-lg max-w-[5rem] max-h-[5rem] mt-4">
+            { product1.images.map((item)=><div className="aspect-h-2 aspect-w-3 overflow-hidden rounded-lg max-w-[5rem] max-h-[5rem] mt-4">
                 <img
                   alt={item.alt}
                   src={item.src}
@@ -132,8 +153,8 @@ export default function ProductDetails() {
           {/* Product info */}
           <div className="lg:col-span-1 maxt-auto max-w-2xl px-4 pb-16 sm:px-6 lg:max-w-7xl lg:px-8 lg:pb-24">
             <div className="lg:col-span-2 ">
-              <h1 className="text-lg lg:text-xl font-semibold text-gray-900">Universal Outfit</h1>
-              <h1 className="text-lg lg:text-xl text-gray-900 opacity-60 pt-1">Casual Puff Sleeves Solid Women White Top </h1>
+              <h1 className="text-lg lg:text-xl font-semibold text-gray-900">{product.product?.brand}</h1>
+              <h1 className="text-lg lg:text-xl text-gray-900 opacity-60 pt-1">{product.product?.title} </h1>
             </div>
 
             {/* Options */}
@@ -141,10 +162,10 @@ export default function ProductDetails() {
               <h2 className="sr-only">Product information</h2>
               <div className="flex space-x-5 items-center text-lg lg:text-xl text-gray-900 mt-6">
                 <p className='font-semibold'>
-                $199
+                ${product.product?.discountedPrice}
                 </p>
                 <p className='opacity-50 line-through'>
-                $211
+                ${product.product?.price}
                 </p>
                 <p className='text-green-600 font-semibold'>5% off</p>
               </div>
@@ -172,7 +193,7 @@ export default function ProductDetails() {
                       onChange={setSelectedSize}
                       className="grid grid-cols-4 gap-4 sm:grid-cols-8 lg:grid-cols-4"
                     >
-                      {product.sizes.map((size) => (
+                      {product1.sizes.map((size) => (
                         <Radio
                           key={size.name}
                           value={size}
@@ -210,7 +231,7 @@ export default function ProductDetails() {
                     </RadioGroup>
                   </fieldset>
                 </div>
-
+ 
                 <Button onClick={handleAddtoCart} color="secondary" variant="contained" sx={{px:"2rem", py:"1rem"}} >
                   Add to Cart
                 </Button>
@@ -232,7 +253,7 @@ export default function ProductDetails() {
 
                 <div className="mt-4">
                   <ul role="list" className="list-disc space-y-2 pl-4 text-sm">
-                    {product.highlights.map((highlight) => (
+                    {product1.highlights.map((highlight) => (
                       <li key={highlight} className="text-gray-400">
                         <span className="text-gray-600">{highlight}</span>
                       </li>
@@ -258,7 +279,7 @@ export default function ProductDetails() {
               <Grid container spacing={7}>
                 <Grid item xs={7}>
                       <div className="space-y-5">
-                        {[1,1,1].map((item)=><ProductReviewCard />)}
+                        {rating.ratings.map((item)=><ProductReviewCard item={item} />)}
                       </div>
                 </Grid>
                 <Grid item xs={5}>

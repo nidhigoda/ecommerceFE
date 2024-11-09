@@ -1,4 +1,4 @@
-import { Fragment, useState} from 'react'
+import { Fragment, useState, useEffect} from 'react'
 import {
   Dialog,
   DialogPanel,
@@ -12,7 +12,7 @@ import {
   Transition,
   TransitionChild,
 } from '@headlessui/react'
-
+import Pagination from '@mui/material/Pagination'
 import {useNavigate,useLocation} from 'react-router-dom'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, FunnelIcon, MinusIcon, PlusIcon, Squares2X2Icon } from '@heroicons/react/20/solid';
@@ -25,6 +25,9 @@ import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
+import {useDispatch,useSelector} from 'react-redux'  
+import {findProducts} from '../../../State/Product/Action.js'
+import {useParams} from 'react-router-dom'
 
 const sortOptions = [
   { name: 'Price: Low to High', href: '#', current: false },
@@ -40,6 +43,41 @@ export default function Product() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const location=useLocation();
   const navigate=useNavigate();
+  const dispatch=useDispatch()
+  const {product} =useSelector(store=>store)
+
+
+  const decodedQueryString=decodeURIComponent(location.search);
+  const searchParamms=new URLSearchParams(decodedQueryString);
+  const param =useParams()
+  const colorValue=searchParamms.get('color')
+  const sizeValue=searchParamms.get('size')
+  const priceValue=searchParamms.get('price')
+  const discount=searchParamms.get('discount')
+  const sortValue=searchParamms.get("sort")
+  const pageNumber=searchParamms.get('page')||1;
+  const stock=searchParamms.get('stock')
+  console.log("product.products",product.products)
+
+  useEffect(()=>{
+    const [minPrice, maxPrice]=priceValue === null?[0,1000]:priceValue.split('-').map(Number);
+
+    const data={
+      category:param.levelThree,
+      colors:colorValue||[],
+      sizes:sizeValue ||[],
+      minPrice,
+      maxPrice,
+      minDiscount:discount||0,
+      sort:sortValue||'price_low',
+      pageNumber:pageNumber,
+      pageSize:1,
+      stock:stock
+    }
+    console.log("product data",data)
+    dispatch(findProducts(data))
+  }, [param.levelThree, colorValue, sizeValue, priceValue, discount, sortValue,pageNumber,stock])
+
   const handleFilter=(value,sectionId)=>{
     const searchParamms=new URLSearchParams(location.search)
     let filterValue=searchParamms.getAll(sectionId)
@@ -68,6 +106,13 @@ export default function Product() {
     searchParamms.set(sectionId,e.target.value)
     const query=searchParamms.toString();
     navigate({search:`?${query}`})
+  }
+
+  const handlePaginationChange=(event, value)=>{
+    const searchParamms=new URLSearchParams(location.search)
+    searchParamms.set("page", value)
+    const query=searchParamms.toString() 
+    navigate({search:`${query}`})
   }
 
   return (
@@ -340,9 +385,16 @@ export default function Product() {
               {/* Product grid */}
               <div className="lg:col-span-3 w-full">
                 <div className='flex flex-wrap justify-center bg-white py-5' >
-                    {mens_kurta.map((item)=><ProductCard product={item}/>)}
+                    {product.products && product.products?.content?.map((item)=><ProductCard product={item}/>)
+                     
+                    }
                 </div>
               </div>
+            </div>
+          </section>
+          <section className='w-full px-[3.6rem]'>
+            <div className='px-4 py-5 flex justify-center'>
+                    <Pagination count={product.products?.totalPages}  onChange={handlePaginationChange} color='secondary'  />
             </div>
           </section>
         </main>
